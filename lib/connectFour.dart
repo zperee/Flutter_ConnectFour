@@ -1,11 +1,14 @@
 import 'dart:math';
 
+import 'package:connect_four/player.dart';
 import 'package:flutter/material.dart';
 
 class GameState extends ChangeNotifier {
-  List<List<int>> field;
-  int activePlayer;
-  int winner;
+  List<List<Player>> field;
+  Player activePlayer;
+  Player player1;
+  Player player2;
+  Player winner;
   int countMoves;
 
   GameState() {
@@ -13,10 +16,12 @@ class GameState extends ChangeNotifier {
   }
 
   void reset() {
-    field = List.generate(7, (index) => List.generate(6, (index) => 0));
+    field = List.generate(7, (index) => List.generate(6, (index) => null));
     Random random = new Random();
-    winner = 0;
-    activePlayer = random.nextBool() ? 1 : 2;
+    winner = null;
+    player1 = new Player(1);
+    player2 = new Player(2);
+    activePlayer = random.nextBool() ? player1 : player2;
 
     countMoves = 0;
     notifyListeners();
@@ -29,13 +34,12 @@ class GameState extends ChangeNotifier {
   }
 
   bool canMove(int column) {
-    return !field[column].contains(0);
+    return !field[column].contains(null);
   }
 
   move(int column) {
-    if (canMove(column) || winner != '') return;
-
-    int row = field[column].indexOf(0);
+    if (canMove(column) || winner != null) return;
+    int row = field[column].indexOf(null);//  indexWhere((element) => element.playerNumber == 0);
     field[column][row] = activePlayer;
 
     countMoves++;
@@ -44,9 +48,9 @@ class GameState extends ChangeNotifier {
     if (checkWinningMove(column, row)) {
       winner = activePlayer;
     } else {
-      if (countMoves == 42) winner = 3;
+      if (countMoves == 42) winner = new Player(3);
 
-      activePlayer = activePlayer == 1 ? 2 : 1;
+      activePlayer = activePlayer == player1 ? player2 : player1;
     }
   }
 
@@ -91,8 +95,8 @@ class GameState extends ChangeNotifier {
     return false;
   }
 
-  bool checkWinningSlice(List<int> miniField) {
-    if (miniField.any((cell) => cell == 0)) return false;
+  bool checkWinningSlice(List<Player> miniField) {
+    if (miniField.any((cell) => cell == null)) return false;
     if (miniField[0] == miniField[1] &&
         miniField[1] == miniField[2] &&
         miniField[2] == miniField[3]) {
