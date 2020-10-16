@@ -39,7 +39,8 @@ class GameState extends ChangeNotifier {
 
   move(int column) {
     if (canMove(column) || winner != null) return;
-    int row = field[column].indexOf(null);//  indexWhere((element) => element.playerNumber == 0);
+    int row = field[column]
+        .indexOf(null); //  indexWhere((element) => element.playerNumber == 0);
     field[column][row] = activePlayer;
 
     countMoves++;
@@ -54,54 +55,39 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  bool checkWinningMove(int column, int row) {
-    // horitontal
-    for (int i = 0; i < 3; i++) {
-      bool winningResult = checkWinningSlice(field[column].sublist(i, i + 4));
-      if (winningResult != false) return winningResult;
+  int stepsInDirection(row, column, rowStep, columnStep) {
+    int currentPlayerNumber = field[row][column].playerNumber;
+    int count = 0;
+
+    row += rowStep;
+    column += columnStep;
+
+    while (0 <= row &&
+        row < 7 &&
+        0 <= column &&
+        column < 6 &&
+        field[row][column]?.playerNumber == currentPlayerNumber) {
+      count++;
+      row += rowStep;
+      column += columnStep;
     }
 
-    // vertikal
-    for (int i = 0; i < 4; i++) {
-      bool winningResult = checkWinningSlice(
-          field.sublist(i, i + 4).map((col) => col[row]).toList());
-      if (winningResult != false) return winningResult;
-    }
-
-    // diagonal
-    for (int i = 0; i < 4; i++) {
-      // down left
-      if (column >= 3) {
-        bool winningResult = checkWinningSlice(field
-            .sublist(i, i + 4)
-            .asMap()
-            .entries
-            .map((entry) => entry.value[entry.key])
-            .toList());
-        if (winningResult != false) return winningResult;
-      }
-
-      // down right
-      if (column <= 3) {
-        bool winningResult = checkWinningSlice(field
-            .sublist(i, i + 4)
-            .asMap()
-            .entries
-            .map((entry) => entry.value[3 - entry.key])
-            .toList());
-        if (winningResult != false) return winningResult;
-      }
-    }
-    return false;
+    return count;
   }
 
-  bool checkWinningSlice(List<Player> miniField) {
-    if (miniField.any((cell) => cell == null)) return false;
-    if (miniField[0] == miniField[1] &&
-        miniField[1] == miniField[2] &&
-        miniField[2] == miniField[3]) {
-      return true;
-    }
+  bool checkWinningMove(int column, int row) {
+    if (stepsInDirection(column, row, 0, 1) +
+            stepsInDirection(column, row, 0, -1) >=
+        3) return true;
+    if (stepsInDirection(column, row, 1, 0) +
+            stepsInDirection(column, row, -1, 0) >=
+        3) return true;
+    if (stepsInDirection(column, row, 1, 1) +
+            stepsInDirection(column, row, -1, -1) >=
+        3) return true;
+    if (stepsInDirection(column, row, 1, -1) +
+            stepsInDirection(column, row, -1, 1) >=
+        3) return true;
 
     return false;
   }
